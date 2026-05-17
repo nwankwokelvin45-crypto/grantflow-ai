@@ -1,0 +1,697 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// AUTH & USERS
+// ─────────────────────────────────────────────
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  emailVerified  DateTime?
+  name           String?
+  image          String?
+  hashedPassword     String?
+  resetToken         String?   @unique
+  resetTokenExpiry   DateTime?
+  role               UserRole  @default(MEMBER)
+  notifyDeadlines   Boolean   @default(true)
+  notifyCompliance  Boolean   @default(true)
+  notifyTeam        Boolean   @default(true)
+  notifyDigest      Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  accounts                Account[]
+  sessions                Session[]
+  organizationMemberships OrgMembership[]
+  comments                Comment[]
+  grantVersions           GrantVersion[]
+  uploadedDocuments       Document[]
+  invitesSent             TeamInvite[] @relation("InviteSender")
+  invitesReceived         TeamInvite[] @relation("InviteRecipient")
+  reviewAssignments       ReviewAssignment[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ─────────────────────────────────────────────
+// ORGANIZATIONS
+// ─────────────────────────────────────────────
+
+model Organization {
+  id                   String              @id @default(cuid())
+  name                 String
+  legalName            String?
+  registrationNumber   String?
+  registrationType     OrgRegistrationType @default(NONPROFIT)
+  province             Province
+  city                 String?
+  address              String?
+  postalCode           String?
+  website              String?
+  phone                String?
+  missionStatement     String?             @db.Text
+  programDescription   String?             @db.Text
+  annualBudget         Decimal?            @db.Decimal(12, 2)
+  staffCount           Int?
+  volunteerCount       Int?
+  foundedYear          Int?
+  primaryFocusArea     FocusArea?
+  logoUrl              String?
+  currentTier            Tier                @default(FREE)
+  aiGenerationsUsed      Int                 @default(0)
+  aiGenerationsReset     DateTime            @default(now())
+  stripeCustomerId       String?             @unique
+  stripeSubscriptionId   String?             @unique
+  stripeSubscriptionStatus String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  members    OrgMembership[]
+  grants     Grant[]
+  documents  Document[]
+  invites    TeamInvite[]
+  forms      Form[]
+  workflows  Workflow[]
+  rubrics    ReviewRubric[]
+
+  @@map("organizations")
+}
+
+model OrgMembership {
+  id             String   @id @default(cuid())
+  userId         String
+  organizationId String
+  memberRole     OrgRole  @default(EDITOR)
+  joinedAt       DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@map("org_memberships")
+}
+
+model TeamInvite {
+  id             String    @id @default(cuid())
+  email          String
+  organizationId String
+  role           OrgRole   @default(EDITOR)
+  token          String    @unique @default(cuid())
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  invitedById    String
+  invitedUserId  String?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy    User         @relation("InviteSender", fields: [invitedById], references: [id])
+  invitedUser  User?        @relation("InviteRecipient", fields: [invitedUserId], references: [id])
+
+  @@map("team_invites")
+}
+
+// ─────────────────────────────────────────────
+// FUNDER DATABASE
+// ─────────────────────────────────────────────
+
+model Funder {
+  id                 String              @id @default(cuid())
+  name               String
+  shortName          String?
+  province           Province
+  website            String?
+  contactEmail       String?
+  description        String?             @db.Text
+  focusAreas         FocusArea[]
+  fundingTypes       FundingType[]
+  minGrantAmount     Decimal?            @db.Decimal(12, 2)
+  maxGrantAmount     Decimal?            @db.Decimal(12, 2)
+  typicalGrantAmount Decimal?            @db.Decimal(12, 2)
+  acceptsOnlineApps  Boolean             @default(true)
+  deadlineType       DeadlineType        @default(ANNUAL)
+  deadlineMonth      Int?
+  deadlineNotes      String?
+  eligibleOrgTypes   OrgRegistrationType[]
+  isActive           Boolean             @default(true)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  rules    FunderRule[]
+  sections FunderSection[]
+  grants   Grant[]
+
+  @@map("funders")
+}
+
+model FunderRule {
+  id        String       @id @default(cuid())
+  funderId  String
+  ruleType  RuleType
+  field     String
+  operator  RuleOperator
+  value     String
+  severity  Severity     @default(ERROR)
+  message   String
+  helpText  String?
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+
+  funder Funder @relation(fields: [funderId], references: [id], onDelete: Cascade)
+
+  @@map("funder_rules")
+}
+
+model FunderSection {
+  id          String  @id @default(cuid())
+  funderId    String
+  sectionKey  String
+  label       String
+  description String? @db.Text
+  isRequired  Boolean @default(true)
+  minWords    Int?
+  maxWords    Int?
+  sortOrder   Int     @default(0)
+
+  funder Funder @relation(fields: [funderId], references: [id], onDelete: Cascade)
+
+  @@map("funder_sections")
+}
+
+// ─────────────────────────────────────────────
+// GRANTS & APPLICATIONS
+// ─────────────────────────────────────────────
+
+model Grant {
+  id              String      @id @default(cuid())
+  title           String
+  organizationId  String
+  funderId        String
+  status          GrantStatus @default(DRAFT)
+  deadline        DateTime?
+  requestedAmount Decimal?    @db.Decimal(12, 2)
+  complianceScore Int?
+  lastScoredAt    DateTime?
+  submittedAt         DateTime?
+  submissionPortal    String?
+  submissionMethod    String?
+  submissionReference String?
+  submissionNotes     String?   @db.Text
+  followUpDate        DateTime?
+  notes               String?   @db.Text
+  createdAt           DateTime  @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  funder       Funder            @relation(fields: [funderId], references: [id])
+  sections     GrantSection[]
+  versions     GrantVersion[]
+  documents    GrantDocument[]
+  comments     Comment[]
+  compliance   ComplianceResult[]
+  exports      GrantExport[]
+  reviews      ReviewAssignment[]
+
+  @@map("grants")
+}
+
+model GrantSection {
+  id          String   @id @default(cuid())
+  grantId     String
+  sectionKey  String
+  label       String
+  content     String?  @db.Text
+  wordCount   Int      @default(0)
+  isComplete  Boolean  @default(false)
+  aiGenerated Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  grant    Grant     @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  comments Comment[]
+
+  @@unique([grantId, sectionKey])
+  @@map("grant_sections")
+}
+
+model GrantVersion {
+  id           String   @id @default(cuid())
+  grantId      String
+  versionNum   Int
+  snapshotJson Json
+  createdById  String
+  changeNote   String?
+  createdAt    DateTime @default(now())
+
+  grant     Grant @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  createdBy User  @relation(fields: [createdById], references: [id])
+
+  @@unique([grantId, versionNum])
+  @@map("grant_versions")
+}
+
+model ComplianceResult {
+  id           String   @id @default(cuid())
+  grantId      String
+  score        Int
+  passedRules  Int
+  failedRules  Int
+  warningRules Int
+  issues       Json
+  checkedAt    DateTime @default(now())
+
+  grant Grant @relation(fields: [grantId], references: [id], onDelete: Cascade)
+
+  @@map("compliance_results")
+}
+
+model GrantExport {
+  id        String       @id @default(cuid())
+  grantId   String
+  format    ExportFormat @default(PDF)
+  fileUrl   String
+  fileSize  Int?
+  createdAt DateTime     @default(now())
+
+  grant Grant @relation(fields: [grantId], references: [id], onDelete: Cascade)
+
+  @@map("grant_exports")
+}
+
+// ─────────────────────────────────────────────
+// DOCUMENTS
+// ─────────────────────────────────────────────
+
+model Document {
+  id             String           @id @default(cuid())
+  organizationId String
+  uploadedById   String
+  name           String
+  originalName   String
+  mimeType       String
+  sizeBytes      Int
+  storageKey     String           @unique
+  category       DocumentCategory @default(GENERAL)
+  description    String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploadedBy   User           @relation(fields: [uploadedById], references: [id])
+  grantLinks   GrantDocument[]
+
+  @@map("documents")
+}
+
+model GrantDocument {
+  id         String   @id @default(cuid())
+  grantId    String
+  documentId String
+  addedAt    DateTime @default(now())
+
+  grant    Grant    @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([grantId, documentId])
+  @@map("grant_documents")
+}
+
+// ─────────────────────────────────────────────
+// COLLABORATION
+// ─────────────────────────────────────────────
+
+model Comment {
+  id         String    @id @default(cuid())
+  grantId    String
+  sectionId  String?
+  authorId   String
+  content    String    @db.Text
+  resolved   Boolean   @default(false)
+  resolvedAt DateTime?
+  parentId   String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  grant   Grant         @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  section GrantSection? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  author  User          @relation(fields: [authorId], references: [id])
+  parent  Comment?      @relation("CommentThread", fields: [parentId], references: [id])
+  replies Comment[]     @relation("CommentThread")
+
+  @@map("comments")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MEMBER
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum Tier {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+enum Province {
+  BC
+  AB
+  ON
+  SK
+  MB
+  OTHER
+}
+
+enum OrgRegistrationType {
+  NONPROFIT
+  REGISTERED_CHARITY
+  SOCIETY
+  INDIGENOUS_ORGANIZATION
+  GOVERNMENT
+  COOPERATIVE
+}
+
+enum FocusArea {
+  ARTS_CULTURE
+  ENVIRONMENT
+  HEALTH
+  SOCIAL_SERVICES
+  EDUCATION
+  INDIGENOUS
+  SPORT_RECREATION
+  ECONOMIC_DEVELOPMENT
+  HOUSING
+  FOOD_SECURITY
+  SENIORS
+  YOUTH
+  DISABILITY
+  IMMIGRATION
+  LGBTQ
+  ANIMAL_WELFARE
+  OTHER
+}
+
+enum FundingType {
+  PROJECT
+  OPERATING
+  CAPITAL
+  CAPACITY_BUILDING
+  EMERGENCY
+}
+
+enum DeadlineType {
+  ANNUAL
+  ROLLING
+  BIANNUAL
+  QUARTERLY
+  CLOSED
+}
+
+enum GrantStatus {
+  DRAFT
+  IN_REVIEW
+  SUBMITTED
+  AWARDED
+  DECLINED
+  WITHDRAWN
+}
+
+enum RuleType {
+  WORD_COUNT
+  REQUIRED_SECTION
+  BUDGET_LIMIT
+  ORG_ELIGIBILITY
+  CONTENT_REQUIRED
+  FORMAT
+}
+
+enum RuleOperator {
+  EQUALS
+  NOT_EQUALS
+  GREATER_THAN
+  LESS_THAN
+  BETWEEN
+  CONTAINS
+  NOT_EMPTY
+  IS_ONE_OF
+}
+
+enum Severity {
+  ERROR
+  WARNING
+  INFO
+}
+
+enum DocumentCategory {
+  FINANCIAL_STATEMENT
+  BOARD_LIST
+  CHARITY_STATUS
+  LETTERS_OF_SUPPORT
+  BUDGET
+  ANNUAL_REPORT
+  PHOTOS
+  GENERAL
+}
+
+enum ExportFormat {
+  PDF
+  DOCX
+}
+
+// ─────────────────────────────────────────────
+// FORMS & SUBMISSIONS
+// ─────────────────────────────────────────────
+
+model Form {
+  id          String           @id @default(cuid())
+  orgId       String
+  org         Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  title       String
+  description String?          @db.Text
+  status      FormStatus       @default(DRAFT)
+  fields      FormField[]
+  submissions FormSubmission[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("forms")
+}
+
+model FormField {
+  id          String    @id @default(cuid())
+  formId      String
+  form        Form      @relation(fields: [formId], references: [id], onDelete: Cascade)
+  type        FieldType
+  label       String
+  placeholder String?
+  helpText    String?   @db.Text
+  required    Boolean   @default(false)
+  options     Json?
+  step        Int       @default(1)
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  @@map("form_fields")
+}
+
+model FormSubmission {
+  id          String           @id @default(cuid())
+  formId      String
+  form        Form             @relation(fields: [formId], references: [id], onDelete: Cascade)
+  data        Json
+  email       String?
+  name        String?
+  status      SubmissionStatus @default(RECEIVED)
+  reviewNotes String?          @db.Text
+  submittedAt DateTime         @default(now())
+
+  @@map("form_submissions")
+}
+
+enum FormStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum FieldType {
+  SHORT_TEXT
+  LONG_TEXT
+  EMAIL
+  PHONE
+  NUMBER
+  DATE
+  FILE_UPLOAD
+  DROPDOWN
+  CHECKBOXES
+  RADIO
+  SECTION_HEADER
+}
+
+enum SubmissionStatus {
+  RECEIVED
+  UNDER_REVIEW
+  ACCEPTED
+  DECLINED
+}
+
+// ─────────────────────────────────────────────
+// WORKFLOWS & AUTOMATION
+// ─────────────────────────────────────────────
+
+model Workflow {
+  id          String          @id @default(cuid())
+  orgId       String
+  org         Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  trigger     WorkflowTrigger
+  steps       Json
+  isActive    Boolean         @default(true)
+  runs        WorkflowRun[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("workflows")
+}
+
+model WorkflowRun {
+  id          String    @id @default(cuid())
+  workflowId  String
+  workflow    Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  grantId     String?
+  status      RunStatus @default(RUNNING)
+  currentStep Int       @default(0)
+  history     Json      @default("[]")
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@map("workflow_runs")
+}
+
+enum WorkflowTrigger {
+  GRANT_STATUS_CHANGE
+  DEADLINE_APPROACHING
+  FORM_SUBMITTED
+  MANUAL
+}
+
+enum RunStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ─────────────────────────────────────────────
+// REVIEW & SCORING
+// ─────────────────────────────────────────────
+
+model ReviewRubric {
+  id          String             @id @default(cuid())
+  orgId       String
+  org         Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  criteria    Json
+  assignments ReviewAssignment[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@map("review_rubrics")
+}
+
+model ReviewAssignment {
+  id         String       @id @default(cuid())
+  grantId    String
+  grant      Grant        @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  rubricId   String
+  rubric     ReviewRubric @relation(fields: [rubricId], references: [id])
+  reviewerId String
+  reviewer   User         @relation(fields: [reviewerId], references: [id])
+  status     ReviewStatus @default(PENDING)
+  dueDate    DateTime?
+  isBlinded  Boolean      @default(false)
+  scores     ReviewScore[]
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@map("review_assignments")
+}
+
+model ReviewScore {
+  id             String           @id @default(cuid())
+  assignmentId   String
+  assignment     ReviewAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  criteriaScores Json
+  totalScore     Int
+  overallNotes   String?          @db.Text
+  submittedAt    DateTime         @default(now())
+
+  @@map("review_scores")
+}
+
+enum ReviewStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  DECLINED
+}
