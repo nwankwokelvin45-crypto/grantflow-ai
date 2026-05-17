@@ -6,6 +6,7 @@ import ComplianceScore from "@/components/compliance/ComplianceScore";
 import ComplianceChecklist from "@/components/compliance/ComplianceChecklist";
 import { Wand2, RefreshCw, Save, CheckCircle, AlertCircle, ClipboardList, ChevronLeft, ChevronRight, Maximize2, Minimize2, GripVertical, LayoutDashboard, Plus, Trash2, Paperclip, FileText, ImageIcon, File, Upload, ExternalLink } from "lucide-react";
 import ProposalPanel from "@/components/writing/ProposalPanel";
+import PlagiarismChecker from "@/components/writing/PlagiarismChecker";
 
 interface Section {
   id: string;
@@ -374,13 +375,8 @@ export default function WritingWorkspace({
     docs:     { label: "Documents", icon: Paperclip,       shortLabel: "📎" },
   };
 
-  function getPanelWidth(id: PanelId) {
-    if (collapsed.has(id)) return "40px";
-    if (expanded === id) return "60%";
-    if (expanded !== null) return "auto"; // other panels shrink
-    // default widths
-    if (id === "editor") return "flex-1";
-    return "288px"; // 18rem
+  function getAllText() {
+    return sections.map((s) => s.content ?? "").filter(Boolean).join("\n\n");
   }
 
   // Mobile tab: "sections" | "write" | "ai" | "proposal"
@@ -639,6 +635,11 @@ export default function WritingWorkspace({
             style={{ borderColor: "var(--border)", color: "var(--text)" }}>
             {checkingCompliance ? <><RefreshCw className="h-4 w-4 animate-spin" />Checking…</> : "Run Compliance Check"}
           </button>
+        </div>
+
+        <div className="border-t pt-4" style={{ borderColor: "var(--border)" }}>
+          <h4 className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: "var(--navy)" }}>Plagiarism</h4>
+          <PlagiarismChecker getText={getAllText} />
         </div>
 
         {showCompliance && (

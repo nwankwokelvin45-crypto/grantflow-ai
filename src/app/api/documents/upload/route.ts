@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { supabase, BUCKET } from "@/lib/supabase";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
 
 const ACCEPTED_TYPES = [
   "application/pdf",
@@ -13,6 +14,10 @@ const ACCEPTED_TYPES = [
 ];
 
 const MAX_BYTES = 25 * 1024 * 1024;
+
+const SUPABASE_READY =
+  !!process.env.SUPABASE_SERVICE_ROLE_KEY &&
+  process.env.SUPABASE_SERVICE_ROLE_KEY !== "your-service-role-key-here";
 
 function detectCategory(name: string, mime: string) {
   const n = name.toLowerCase();
@@ -41,28 +46,32 @@ export async function POST(req: Request) {
     const file = form.get("file") as File | null;
     if (!file) return Response.json({ error: "No file" }, { status: 400 });
 
-    if (!ACCEPTED_TYPES.includes(file.type)) {
+    if (!ACCEPTED_TYPES.includes(file.type))
       return Response.json({ error: "File type not supported" }, { status: 400 });
-    }
-    if (file.size > MAX_BYTES) {
+    if (file.size > MAX_BYTES)
       return Response.json({ error: "File exceeds 25MB" }, { status: 400 });
-    }
 
     const ext = file.name.split(".").pop() ?? "bin";
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const storageKey = `${membership.organizationId}/${filename}`;
-
     const arrayBuffer = await file.arrayBuffer();
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET)
-      .upload(storageKey, Buffer.from(arrayBuffer), {
-        contentType: file.type,
-        upsert: false,
-      });
 
-    if (uploadError) {
-      console.error("[documents/upload] Supabase upload error:", uploadError);
-      return Response.json({ error: "File upload failed" }, { status: 500 });
+    if (SUPABASE_READY) {
+      // Production: Supabase Storage
+      const { supabase, BUCKET } = await import("@/lib/supabase");
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET)
+        .upload(storageKey, Buffer.from(arrayBuffer), { contentType: file.type, upsert: false });
+
+      if (uploadError) {
+        console.error("[documents/upload] Supabase error:", uploadError);
+        return Response.json({ error: "File upload failed" }, { status: 500 });
+      }
+    } else {
+      // Development: local filesystem under public/uploads/
+      const uploadDir = path.join(process.cwd(), "public", "uploads", membership.organizationId);
+      await mkdir(uploadDir, { recursive: true });
+      await writeFile(path.join(uploadDir, filename), Buffer.from(arrayBuffer));
     }
 
     const doc = await prisma.document.create({

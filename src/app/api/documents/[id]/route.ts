@@ -1,6 +1,11 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { supabase, BUCKET } from "@/lib/supabase";
+import { unlink } from "fs/promises";
+import path from "path";
+
+const SUPABASE_READY =
+  !!process.env.SUPABASE_SERVICE_ROLE_KEY &&
+  process.env.SUPABASE_SERVICE_ROLE_KEY !== "your-service-role-key-here";
 
 export async function DELETE(
   _req: Request,
@@ -19,8 +24,16 @@ export async function DELETE(
   });
   if (!membership) return Response.json({ error: "Forbidden" }, { status: 403 });
 
-  // Remove from Supabase Storage (ignore errors if file is already gone)
-  await supabase.storage.from(BUCKET).remove([doc.storageKey]);
+  if (SUPABASE_READY) {
+    const { supabase, BUCKET } = await import("@/lib/supabase");
+    await supabase.storage.from(BUCKET).remove([doc.storageKey]);
+  } else {
+    try {
+      await unlink(path.join(process.cwd(), "public", "uploads", doc.storageKey));
+    } catch {
+      // File may already be gone
+    }
+  }
 
   await prisma.document.delete({ where: { id } });
   return Response.json({ ok: true });

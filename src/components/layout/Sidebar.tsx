@@ -72,7 +72,7 @@ function SidebarContent({ orgName, isAdmin, onClose }: { orgName?: string; isAdm
             <Link key={href} href={href} onClick={onClose}
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all"
               style={active
-                ? { background: "rgba(255,255,255,0.1)", color: "#FFFFFF", borderLeft: "2px solid var(--gold)", backdropFilter: "blur(4px)" }
+                ? { background: "rgba(14,165,233,0.18)", color: "#38BDF8", borderLeft: "2px solid #38BDF8" }
                 : { color: "rgba(255,255,255,0.5)", borderLeft: "2px solid transparent" }}>
               <Icon className="h-4 w-4 shrink-0" />
               {label}
@@ -85,7 +85,7 @@ function SidebarContent({ orgName, isAdmin, onClose }: { orgName?: string; isAdm
             <Link href="/admin" onClick={onClose}
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all mt-2"
               style={active
-                ? { background: "rgba(255,255,255,0.1)", color: "#FFFFFF", borderLeft: "2px solid var(--gold)" }
+                ? { background: "rgba(14,165,233,0.18)", color: "#38BDF8", borderLeft: "2px solid #38BDF8" }
                 : { color: "rgba(255,255,255,0.35)", borderLeft: "2px solid transparent" }}>
               <ShieldCheck className="h-4 w-4 shrink-0" />
               Admin

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -15,7 +15,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -31,7 +31,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex" style={{ background: "var(--cream)" }}>
       {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-14" style={{ background: "linear-gradient(160deg, var(--navy) 0%, var(--navy-light) 100%)" }}>
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-14" style={{ background: "linear-gradient(160deg, #0B1628 0%, #0F2444 50%, #0B1E3A 100%)" }}>
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <Image src="/icon.png" alt="Grant2Fund'n" width={36} height={36} className="rounded-lg" />
           <span className="font-serif font-semibold text-xl text-white">Grant2Fund'n</span>

@@ -26,13 +26,13 @@ export default function TopNav({ title, subtitle, actions }: TopNavProps) {
           title={theme === "dark" ? "Light mode" : "Dark mode"}
           className="rounded-lg p-2 transition-colors"
           style={{ color: "var(--text-muted)" }}
-          onMouseOver={(e) => { e.currentTarget.style.background = "var(--warm-gray)"; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = "transparent"; }}>
+          onMouseOver={(e) => { e.currentTarget.style.background = "var(--sky-pale)"; e.currentTarget.style.color = "var(--sky)"; }}
+          onMouseOut={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}>
           {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
         <button className="rounded-lg p-2 transition-colors hidden sm:block" style={{ color: "var(--text-muted)" }}
-          onMouseOver={(e) => { e.currentTarget.style.background = "var(--warm-gray)"; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = "transparent"; }}>
+          onMouseOver={(e) => { e.currentTarget.style.background = "var(--sky-pale)"; e.currentTarget.style.color = "var(--sky)"; }}
+          onMouseOut={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}>
           <Bell className="h-4 w-4" />
         </button>
       </div>
