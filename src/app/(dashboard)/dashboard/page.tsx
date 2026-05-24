@@ -106,9 +106,9 @@ export default async function DashboardPage() {
 
         {/* Follow-up reminders banner */}
         {followUps.length > 0 && (
-          <div className="rounded-xl border p-4" style={{ background: "rgba(196,151,74,0.06)", borderColor: "rgba(196,151,74,0.3)" }}>
+          <div className="rounded-xl border p-4" style={{ background: "rgba(14,165,233,0.06)", borderColor: "rgba(14,165,233,0.25)" }}>
             <div className="flex items-center gap-2 mb-3">
-              <Bell className="h-4 w-4" style={{ color: "var(--gold)" }} />
+              <Bell className="h-4 w-4" style={{ color: "var(--sky)" }} />
               <h3 className="text-sm font-semibold" style={{ color: "var(--navy)" }}>
                 Follow-up Reminders ({followUps.length})
               </h3>
@@ -120,9 +120,9 @@ export default async function DashboardPage() {
                 return (
                   <Link key={g.id} href={`/grants/${g.id}`}
                     className="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors hover:shadow-sm"
-                    style={{ background: "white", borderColor: overdue ? "rgba(220,38,38,0.3)" : "rgba(196,151,74,0.3)", color: "var(--navy)" }}>
+                    style={{ background: "white", borderColor: overdue ? "rgba(220,38,38,0.3)" : "rgba(14,165,233,0.3)", color: "var(--navy)" }}>
                     <span className="truncate max-w-[140px]">{g.funder.name}</span>
-                    <span className="shrink-0 font-semibold" style={{ color: overdue ? "#DC2626" : "var(--gold)" }}>
+                    <span className="shrink-0 font-semibold" style={{ color: overdue ? "#DC2626" : "var(--sky)" }}>
                       {overdue ? `${Math.abs(days)}d overdue` : days === 0 ? "Today" : `in ${days}d`}
                     </span>
                   </Link>

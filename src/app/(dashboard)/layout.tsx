@@ -27,7 +27,7 @@ export default async function DashboardLayout({
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar orgName={membership?.organization.name} isAdmin={isAdmin} />
-      <main className="flex-1 overflow-y-auto pt-14 md:pt-0 main-bg">
+      <main className="flex-1 overflow-y-auto pt-14 md:pt-0 main-bg" style={{ color: "var(--text-primary)" }}>
         {children}
       </main>
       <ChatBot />
