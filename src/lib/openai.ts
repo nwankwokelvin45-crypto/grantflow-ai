@@ -1,15 +1,18 @@
 import OpenAI from "openai";
 
-const globalForOpenAI = globalThis as unknown as {
-  openai: OpenAI | undefined;
-};
+let _openai: OpenAI | undefined;
 
-export const openai =
-  globalForOpenAI.openai ??
-  new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+function getInstance(): OpenAI {
+  if (!_openai) {
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return _openai;
+}
 
-if (process.env.NODE_ENV !== "production") globalForOpenAI.openai = openai;
+export const openai = new Proxy({} as OpenAI, {
+  get(_, prop: string | symbol) {
+    return (getInstance() as unknown as Record<string | symbol, unknown>)[prop];
+  },
+});
 
 export const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gpt-4o";
