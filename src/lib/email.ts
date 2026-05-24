@@ -1,6 +1,15 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | undefined;
+function getResend(): Resend {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
+}
+const resend = new Proxy({} as Resend, {
+  get(_, prop: string | symbol) {
+    return (getResend() as unknown as Record<string | symbol, unknown>)[prop];
+  },
+});
 const FROM = "Grant2Fund'n <noreply@grantflow.ai>";
 
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
