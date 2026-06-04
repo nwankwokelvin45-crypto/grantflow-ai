@@ -10,7 +10,7 @@ const resend = new Proxy({} as Resend, {
     return (getResend() as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
-const FROM = "Grant2Fund'n <noreply@grantflow.ai>";
+const FROM = process.env.EMAIL_FROM ?? "Grant2Fund'n <onboarding@resend.dev>";
 
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
   await resend.emails.send({
