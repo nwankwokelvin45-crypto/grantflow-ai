@@ -11,6 +11,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const invite = searchParams.get("invite");
+  const verified = searchParams.get("verified") === "1";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -79,6 +80,11 @@ function LoginForm() {
               <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {verified && (
+                <div className="rounded-lg px-4 py-3 text-sm border" style={{ background: "#F0FDF4", borderColor: "#86EFAC", color: "#166534" }}>
+                  ✅ Email verified! You can now sign in.
+                </div>
+              )}
               {error && (
                 <div className="rounded-lg px-4 py-3 text-sm border" style={{ background: "#FEF2F2", borderColor: "#FECACA", color: "#DC2626" }}>
                   {error}

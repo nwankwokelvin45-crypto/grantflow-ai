@@ -12,15 +12,21 @@ export default async function DashboardLayout({
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  // Get primary org for sidebar display + user role
+  // Get primary org for sidebar display + user role + email verification status
   const [membership, user] = await Promise.all([
     prisma.orgMembership.findFirst({
       where: { userId: session.user.id },
       include: { organization: { select: { name: true } } },
       orderBy: { joinedAt: "asc" },
     }),
-    prisma.user.findUnique({ where: { id: session.user.id }, select: { role: true } }),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true, emailVerified: true },
+    }),
   ]);
+
+  // Redirect unverified users — Google OAuth sets emailVerified automatically
+  if (!user?.emailVerified) redirect("/verify-email");
 
   const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
 

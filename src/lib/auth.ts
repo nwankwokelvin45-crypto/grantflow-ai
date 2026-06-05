@@ -67,12 +67,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        // Fetch emailVerified from DB on first sign-in
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id as string },
+          select: { emailVerified: true },
+        });
+        token.emailVerified = dbUser?.emailVerified ?? null;
       }
       return token;
     },
     async session({ session, token }) {
       if (token.id) {
         session.user.id = token.id as string;
+        session.user.emailVerified = token.emailVerified as Date | null;
       }
       return session;
     },

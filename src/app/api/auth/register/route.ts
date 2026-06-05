@@ -2,8 +2,9 @@ import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import { sendWelcomeEmail } from "@/lib/email";
+import { sendWelcomeEmail, sendVerificationEmail } from "@/lib/email";
 import { authLimiter } from "@/lib/ratelimit";
+import { randomBytes } from "crypto";
 
 const registerSchema = z.object({
   name: z.string().min(2),
@@ -36,8 +37,22 @@ export async function POST(req: NextRequest) {
     select: { id: true, name: true, email: true },
   });
 
-  // Fire-and-forget welcome email
+  // Create email verification token (24h expiry)
+  const token = randomBytes(32).toString("hex");
+  await prisma.verificationToken.create({
+    data: {
+      identifier: email,
+      token,
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    },
+  });
+
+  const baseUrl = process.env.AUTH_URL ?? "http://localhost:3000";
+  const verifyUrl = `${baseUrl}/verify-email?token=${token}`;
+
+  // Send both emails — fire-and-forget
   sendWelcomeEmail(email, name).catch((e) => console.error("[register] welcome email:", e));
+  sendVerificationEmail(email, verifyUrl).catch((e) => console.error("[register] verify email:", e));
 
   return Response.json(user, { status: 201 });
 }

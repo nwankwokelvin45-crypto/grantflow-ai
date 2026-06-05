@@ -36,12 +36,8 @@ function RegisterForm() {
       return;
     }
 
-    const result = await signIn("credentials", { email, password, redirect: false });
-    if (result?.error) {
-      router.push("/login");
-    } else {
-      router.push(invite ? `/invite/${invite}` : "/organization/new");
-    }
+    // Don't auto sign-in — redirect to verify email first
+    router.push(invite ? `/verify-email?invite=${invite}` : "/verify-email");
   }
 
   return (
