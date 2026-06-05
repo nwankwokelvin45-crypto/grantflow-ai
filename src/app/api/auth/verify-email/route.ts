@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
   });
 
   const baseUrl = (process.env.AUTH_URL ?? "http://localhost:3000").trim();
-  await sendVerificationEmail(email, `${baseUrl}/verify-email?token=${token}`);
+  await sendVerificationEmail(email, `${baseUrl}/api/auth/verify-email?token=${token}`);
 
   return Response.json({ ok: true });
 }

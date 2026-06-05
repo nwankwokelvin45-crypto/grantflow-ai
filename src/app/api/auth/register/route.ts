@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
   });
 
   const baseUrl = (process.env.AUTH_URL ?? "http://localhost:3000").trim();
-  const verifyUrl = `${baseUrl}/verify-email?token=${token}`;
+  const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${token}`;
 
   // Send both emails — fire-and-forget
   sendWelcomeEmail(email, name).catch((e) => console.error("[register] welcome email:", e));
