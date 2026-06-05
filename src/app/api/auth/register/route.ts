@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  const baseUrl = process.env.AUTH_URL ?? "http://localhost:3000";
+  const baseUrl = (process.env.AUTH_URL ?? "http://localhost:3000").trim();
   const verifyUrl = `${baseUrl}/verify-email?token=${token}`;
 
   // Send both emails — fire-and-forget
