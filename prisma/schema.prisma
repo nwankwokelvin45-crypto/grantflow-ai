@@ -36,6 +36,7 @@ model User {
   invitesSent             TeamInvite[] @relation("InviteSender")
   invitesReceived         TeamInvite[] @relation("InviteRecipient")
   reviewAssignments       ReviewAssignment[]
+  sentMessages            Message[]
 
   @@map("users")
 }
@@ -120,6 +121,7 @@ model Organization {
   forms      Form[]
   workflows  Workflow[]
   rubrics    ReviewRubric[]
+  messages   Message[]
 
   @@map("organizations")
 }
@@ -256,6 +258,7 @@ model Grant {
   compliance   ComplianceResult[]
   exports      GrantExport[]
   reviews      ReviewAssignment[]
+  messages     Message[]
 
   @@map("grants")
 }
@@ -365,6 +368,21 @@ model GrantDocument {
 // ─────────────────────────────────────────────
 // COLLABORATION
 // ─────────────────────────────────────────────
+
+model Message {
+  id             String       @id @default(cuid())
+  content        String       @db.Text
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  grantId        String?
+  grant          Grant?       @relation(fields: [grantId], references: [id], onDelete: SetNull)
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, grantId, createdAt])
+  @@map("messages")
+}
 
 model Comment {
   id         String    @id @default(cuid())
