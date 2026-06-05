@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import TopNav from "@/components/layout/TopNav";
-import { Users, Mail, Shield, UserPlus, Copy, Check, Clock } from "lucide-react";
+import { Users, Mail, Shield, UserPlus, Copy, Check, Clock, Trash2 } from "lucide-react";
 
 interface Invite {
   id: string;
@@ -12,12 +12,19 @@ interface Invite {
   inviteUrl?: string;
 }
 
+interface Member {
+  memberRole: string;
+  joinedAt: string;
+  user: { id: string; name: string | null; email: string; image: string | null };
+}
+
 export default function TeamPage() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("EDITOR");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [invites, setInvites] = useState<Invite[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [newInviteUrl, setNewInviteUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [orgId, setOrgId] = useState("");
@@ -28,6 +35,7 @@ export default function TeamPage() {
         const id = orgs[0].id;
         setOrgId(id);
         fetch(`/api/organizations/${id}/invites`).then((r) => r.json()).then(setInvites);
+        fetch(`/api/organizations/${id}/members`).then((r) => r.json()).then(setMembers);
       }
     });
   }, []);
@@ -159,17 +167,69 @@ export default function TeamPage() {
 
         {/* Members */}
         <div className="rounded-xl border overflow-hidden" style={{ background: "white", borderColor: "var(--border)" }}>
-          <div className="px-5 py-3 border-b flex items-center gap-2" style={{ borderColor: "var(--border)" }}>
-            <Users className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
-            <span className="text-sm font-semibold" style={{ color: "var(--navy)" }}>Members</span>
+          <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: "var(--border)" }}>
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
+              <span className="text-sm font-semibold" style={{ color: "var(--navy)" }}>Members</span>
+            </div>
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+              style={{ background: "var(--accent-subtle)", color: "var(--accent-text)" }}>
+              {members.length}
+            </span>
           </div>
-          <div className="p-10 text-center">
-            <Users className="mx-auto h-10 w-10 mb-3" style={{ color: "var(--border)" }} />
-            <p className="text-sm font-semibold" style={{ color: "var(--text-muted)" }}>Just you for now</p>
-            <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-              Invite colleagues to collaborate on grant writing and review.
-            </p>
-          </div>
+          {members.length === 0 ? (
+            <div className="p-10 text-center">
+              <Users className="mx-auto h-10 w-10 mb-3" style={{ color: "var(--border)" }} />
+              <p className="text-sm font-semibold" style={{ color: "var(--text-muted)" }}>Just you for now</p>
+              <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+                Invite colleagues to collaborate on grant writing and review.
+              </p>
+            </div>
+          ) : (
+            <ul className="divide-y" style={{ borderColor: "var(--border)" }}>
+              {members.map((m) => (
+                <li key={m.user.id} className="flex items-center justify-between px-5 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
+                      style={{ background: "linear-gradient(135deg, var(--navy-light, #2A3F6B), var(--navy, #1B2B4B))" }}>
+                      {m.user.name?.[0]?.toUpperCase() ?? m.user.email[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium" style={{ color: "var(--navy)" }}>
+                        {m.user.name ?? m.user.email}
+                      </p>
+                      <p className="text-xs" style={{ color: "var(--text-muted)" }}>{m.user.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full capitalize"
+                      style={{
+                        background: m.memberRole === "OWNER" ? "rgba(196,151,74,0.12)" : m.memberRole === "ADMIN" ? "rgba(74,124,196,0.12)" : "var(--warm-gray, #F5F3EF)",
+                        color: m.memberRole === "OWNER" ? "var(--gold)" : m.memberRole === "ADMIN" ? "#4A7CC4" : "var(--text-muted)",
+                      }}>
+                      {m.memberRole.toLowerCase()}
+                    </span>
+                    {m.memberRole !== "OWNER" && (
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`Remove ${m.user.name ?? m.user.email} from the team?`)) return;
+                          await fetch(`/api/organizations/${orgId}/members`, {
+                            method: "DELETE",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ userId: m.user.id }),
+                          });
+                          setMembers((prev) => prev.filter((x) => x.user.id !== m.user.id));
+                        }}
+                        className="text-xs p-1.5 rounded hover:bg-red-50 transition-colors"
+                        style={{ color: "var(--text-muted)" }}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>
