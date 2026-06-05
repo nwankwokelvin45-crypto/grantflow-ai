@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const invite = searchParams.get("invite");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,7 +40,7 @@ export default function RegisterPage() {
     if (result?.error) {
       router.push("/login");
     } else {
-      router.push("/organization/new");
+      router.push(invite ? `/invite/${invite}` : "/organization/new");
     }
   }
 
@@ -84,7 +86,7 @@ export default function RegisterPage() {
             {/* Google OAuth */}
             <button
               type="button"
-              onClick={() => signIn("google", { callbackUrl: "/organization/new" })}
+              onClick={() => signIn("google", { callbackUrl: invite ? `/invite/${invite}` : "/organization/new" })}
               className="w-full flex items-center justify-center gap-3 rounded-lg border py-2.5 text-sm font-medium transition-all hover:bg-gray-50 mb-4"
               style={{ borderColor: "var(--border)", color: "var(--text)" }}>
               <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
@@ -156,5 +158,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }
