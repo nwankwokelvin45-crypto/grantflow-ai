@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import { sendWelcomeEmail, sendVerificationEmail } from "@/lib/email";
+import { sendVerificationEmail } from "@/lib/email";
 import { authLimiter } from "@/lib/ratelimit";
 import { randomBytes } from "crypto";
 
@@ -50,8 +50,7 @@ export async function POST(req: NextRequest) {
   const baseUrl = (process.env.AUTH_URL ?? "http://localhost:3000").trim();
   const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${token}`;
 
-  // Send both emails — fire-and-forget
-  sendWelcomeEmail(email, name).catch((e) => console.error("[register] welcome email:", e));
+  // Only send verification now — welcome email fires after they verify
   sendVerificationEmail(email, verifyUrl).catch((e) => console.error("[register] verify email:", e));
 
   return Response.json(user, { status: 201 });

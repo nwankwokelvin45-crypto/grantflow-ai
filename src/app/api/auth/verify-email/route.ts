@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendVerificationEmail } from "@/lib/email";
+import { sendVerificationEmail, sendWelcomeEmail } from "@/lib/email";
 import { randomBytes } from "crypto";
 
 // GET /api/auth/verify-email?token=xxx  — confirm verification
@@ -16,7 +16,14 @@ export async function GET(req: NextRequest) {
     return Response.redirect(new URL("/verify-email?error=expired", req.url));
   }
 
-  // Mark email as verified
+  // Mark email as verified and fetch user name for welcome email
+  const user = await prisma.user.findUnique({
+    where: { email: record.identifier },
+    select: { name: true, emailVerified: true },
+  });
+
+  const alreadyVerified = !!user?.emailVerified;
+
   await prisma.user.updateMany({
     where: { email: record.identifier, emailVerified: null },
     data: { emailVerified: new Date() },
@@ -24,6 +31,13 @@ export async function GET(req: NextRequest) {
 
   // Delete used token
   await prisma.verificationToken.delete({ where: { token } });
+
+  // Send welcome email now that account is confirmed (fire-and-forget)
+  if (!alreadyVerified && user) {
+    sendWelcomeEmail(record.identifier, user.name ?? "there").catch(
+      (e) => console.error("[verify-email] welcome email:", e)
+    );
+  }
 
   return Response.redirect(new URL("/login?verified=1", req.url));
 }
