@@ -364,6 +364,100 @@ function HeroSection({ isDark }: { isDark: boolean }) {
         </div>
       </div>
 
+      {/* ── STICKY NOTE ── */}
+      <div
+        className="absolute z-30 pointer-events-none"
+        style={{
+          top: "88px",
+          right: "28px",
+          transform: "rotate(-4deg)",
+          filter: "drop-shadow(4px 6px 14px rgba(0,0,0,0.22))",
+        }}
+      >
+        {/* Wood frame */}
+        <div style={{
+          background: "linear-gradient(145deg, #c8a96e, #a0784a, #b8905e, #a0784a)",
+          borderRadius: "6px",
+          padding: "10px",
+          boxShadow: "inset 0 1px 2px rgba(255,255,255,0.25), inset 0 -1px 2px rgba(0,0,0,0.25)",
+        }}>
+          {/* Red tape */}
+          <div style={{
+            position: "absolute",
+            top: "-10px",
+            left: "50%",
+            transform: "translateX(-50%) rotate(1deg)",
+            width: "44px",
+            height: "20px",
+            background: "rgba(200,40,40,0.82)",
+            borderRadius: "2px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+            zIndex: 1,
+          }} />
+          {/* Inner paper */}
+          <div style={{
+            background: "linear-gradient(160deg, #fffde7 0%, #fff9c4 60%, #fff3a0 100%)",
+            borderRadius: "2px",
+            padding: "16px 18px 18px",
+            minWidth: "148px",
+            boxShadow: "inset 1px 1px 3px rgba(0,0,0,0.06)",
+          }}>
+            {/* Header line */}
+            <p style={{
+              fontSize: "9px",
+              fontWeight: 700,
+              letterSpacing: "1.5px",
+              textTransform: "uppercase",
+              color: "#b8860b",
+              marginBottom: "12px",
+              fontFamily: "Georgia, serif",
+              borderBottom: "1px solid rgba(184,134,11,0.25)",
+              paddingBottom: "6px",
+            }}>
+              📋 Grant Checklist
+            </p>
+            {/* Checklist items */}
+            {["To Do", "Verification", "Submission"].map((item, i) => (
+              <div key={item} style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: i < 2 ? "9px" : 0,
+              }}>
+                <div style={{
+                  width: "13px",
+                  height: "13px",
+                  border: "1.5px solid #999",
+                  borderRadius: "2px",
+                  background: "white",
+                  flexShrink: 0,
+                  boxShadow: "inset 0 1px 2px rgba(0,0,0,0.08)",
+                }} />
+                <span style={{
+                  fontSize: "13px",
+                  color: "#3a3000",
+                  fontFamily: "'Comic Sans MS', 'Chalkboard SE', cursive",
+                  lineHeight: 1,
+                }}>
+                  {item}
+                </span>
+              </div>
+            ))}
+            {/* Ruled lines */}
+            {[0,1,2].map(i => (
+              <div key={i} style={{
+                position: "absolute",
+                bottom: `${22 + i * 14}px`,
+                left: "16px",
+                right: "16px",
+                height: "1px",
+                background: "rgba(100,149,237,0.15)",
+              }} />
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Scroll hint */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-25">
         <div className="w-5 h-8 rounded-full border flex items-start justify-center pt-1.5"
