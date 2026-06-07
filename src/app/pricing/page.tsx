@@ -9,6 +9,7 @@ const PLANS = [
     period: "forever",
     desc: "Perfect for getting started",
     features: [
+      "1 organization profile",
       "3 active grant applications",
       "1 team member",
       "10 AI generations / month",
@@ -26,6 +27,7 @@ const PLANS = [
     period: "per month",
     desc: "For growing nonprofits",
     features: [
+      "1 organization profile",
       "10 active grant applications",
       "3 team members",
       "50 AI generations / month",
@@ -42,8 +44,9 @@ const PLANS = [
     name: "Pro",
     price: "$99",
     period: "per month",
-    desc: "For established organizations",
+    desc: "For consultants & established organizations",
     features: [
+      "Up to 10 organization profiles",
       "Unlimited grant applications",
       "10 team members",
       "Unlimited AI generations",
@@ -61,11 +64,12 @@ const PLANS = [
     name: "Enterprise",
     price: "$299",
     period: "per month",
-    desc: "For large organizations & consultants",
+    desc: "For agencies managing many nonprofits",
     features: [
-      "Unlimited everything",
+      "Up to 50 organization profiles",
+      "Unlimited grant applications",
       "Unlimited team members",
-      "Multi-organization support",
+      "Unlimited AI generations",
       "Everything in Pro",
       "Custom branding",
       "Dedicated support",

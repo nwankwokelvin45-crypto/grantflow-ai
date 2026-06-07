@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { PLANS, type PlanKey } from "@/lib/stripe";
 
 const createOrgSchema = z.object({
   name: z.string().min(2),
@@ -45,6 +46,28 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Check org limit against user's highest plan
+  const ownedOrgs = await prisma.orgMembership.findMany({
+    where: { userId: session.user.id, memberRole: "OWNER" },
+    include: { organization: { select: { currentTier: true } } },
+  });
+
+  const highestTier = ownedOrgs.reduce<PlanKey>((best, m) => {
+    const tierOrder: PlanKey[] = ["FREE", "STARTER", "PRO", "ENTERPRISE"];
+    const current = m.organization.currentTier as PlanKey;
+    return tierOrder.indexOf(current) > tierOrder.indexOf(best) ? current : best;
+  }, "FREE");
+
+  const limit = PLANS[highestTier].maxOrganizations;
+  if (ownedOrgs.length >= limit) {
+    return Response.json({
+      error: "org_limit_reached",
+      message: `Your ${PLANS[highestTier].name} plan allows up to ${limit} organization${limit === 1 ? "" : "s"}. Upgrade to add more.`,
+      limit,
+      tier: highestTier,
+    }, { status: 402 });
   }
 
   const body = await req.json();
