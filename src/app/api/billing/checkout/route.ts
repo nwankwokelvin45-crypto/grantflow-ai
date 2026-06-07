@@ -7,9 +7,11 @@ export async function POST(req: Request) {
     const session = await auth();
     if (!session?.user?.id) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { tier } = await req.json() as { tier: PlanKey };
+    const { tier, annual = false } = await req.json() as { tier: PlanKey; annual?: boolean };
     const plan = PLANS[tier];
-    if (!plan || !plan.priceId) {
+    const priceId = annual ? plan.annualPriceId : plan.priceId;
+
+    if (!plan || !priceId) {
       return Response.json({ error: "Invalid plan" }, { status: 400 });
     }
 
@@ -22,7 +24,6 @@ export async function POST(req: Request) {
     const org = membership.organization;
     const baseUrl = process.env.AUTH_URL;
 
-    // Get or create Stripe customer
     let customerId = org.stripeCustomerId ?? undefined;
     if (!customerId) {
       const customer = await stripe.customers.create({
@@ -40,12 +41,12 @@ export async function POST(req: Request) {
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
-      line_items: [{ price: plan.priceId!, quantity: 1 }],
+      line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${baseUrl}/settings?upgraded=1`,
       cancel_url: `${baseUrl}/settings`,
-      metadata: { organizationId: org.id, tier },
+      metadata: { organizationId: org.id, tier, billing: annual ? "annual" : "monthly" },
       subscription_data: {
-        metadata: { organizationId: org.id, tier },
+        metadata: { organizationId: org.id, tier, billing: annual ? "annual" : "monthly" },
       },
     });
 

@@ -100,6 +100,7 @@ export default function SettingsPage() {
   const [aiLimit, setAiLimit] = useState(10);
   const [hasStripe, setHasStripe] = useState(false);
   const [upgrading, setUpgrading] = useState("");
+  const [annualBilling, setAnnualBilling] = useState(false);
 
   // Notifications
   const [notifyDeadlines, setNotifyDeadlines] = useState(true);
@@ -385,49 +386,82 @@ export default function SettingsPage() {
 
             {/* Upgrade plans */}
             {orgTier === "FREE" && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-                {[
-                  { tier: "STARTER", name: "Starter", price: "$49/mo", features: "10 grants · 3 members · 50 AI/mo" },
-                  { tier: "PRO", name: "Pro", price: "$99/mo", features: "Unlimited grants · 10 members · Unlimited AI", highlight: true },
-                  { tier: "ENTERPRISE", name: "Enterprise", price: "$299/mo", features: "Multi-org · Custom branding · Priority support" },
-                ].map((plan) => (
-                  <div key={plan.tier}
-                    className="rounded-xl border p-4 flex flex-col gap-2"
-                    style={{
-                      borderColor: plan.highlight ? "var(--gold)" : "var(--border)",
-                      background: plan.highlight ? "rgba(196,151,74,0.04)" : "var(--cream)",
-                    }}>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold" style={{ color: "var(--navy)" }}>{plan.name}</p>
-                      {plan.highlight && <Zap className="h-3.5 w-3.5" style={{ color: "var(--gold)" }} />}
-                    </div>
-                    <p className="text-lg font-bold" style={{ color: plan.highlight ? "var(--gold)" : "var(--navy)" }}>{plan.price}</p>
-                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>{plan.features}</p>
-                    <button
-                      disabled={upgrading === plan.tier}
-                      onClick={async () => {
-                        setUpgrading(plan.tier);
-                        const res = await fetch("/api/billing/checkout", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ tier: plan.tier }),
-                        });
-                        const { url, error } = await res.json();
-                        setUpgrading("");
-                        if (url) window.location.href = url;
-                        else alert(error ?? "Failed to start checkout");
-                      }}
-                      className="mt-auto rounded-lg px-3 py-2 text-xs font-semibold text-white transition-opacity"
-                      style={{
-                        background: plan.highlight
-                          ? "linear-gradient(135deg, var(--navy-light), var(--navy))"
-                          : "var(--navy)",
-                        opacity: upgrading === plan.tier ? 0.7 : 1,
-                      }}>
-                      {upgrading === plan.tier ? "Redirecting..." : `Upgrade to ${plan.name}`}
-                    </button>
-                  </div>
-                ))}
+              <div className="pt-2">
+                {/* Billing toggle */}
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>Monthly</span>
+                  <button
+                    onClick={() => setAnnualBilling(!annualBilling)}
+                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                    style={{ background: annualBilling ? "var(--navy)" : "var(--border)" }}
+                  >
+                    <span
+                      className="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200"
+                      style={{ marginLeft: annualBilling ? "26px" : "4px" }}
+                    />
+                  </button>
+                  <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
+                    Annual{" "}
+                    <span className="font-bold" style={{ color: "#2EAD6B" }}>Save 20%</span>
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {[
+                    { tier: "STARTER", name: "Starter", monthlyPrice: 49, annualPrice: 39, features: "10 grants · 3 members · 50 AI/mo" },
+                    { tier: "PRO", name: "Pro", monthlyPrice: 99, annualPrice: 79, features: "Unlimited grants · 10 members · Unlimited AI", highlight: true },
+                    { tier: "ENTERPRISE", name: "Enterprise", monthlyPrice: 299, annualPrice: 239, features: "Multi-org · Custom branding · Priority support" },
+                  ].map((plan) => {
+                    const displayPrice = annualBilling ? plan.annualPrice : plan.monthlyPrice;
+                    return (
+                      <div key={plan.tier}
+                        className="rounded-xl border p-4 flex flex-col gap-2"
+                        style={{
+                          borderColor: plan.highlight ? "var(--gold)" : "var(--border)",
+                          background: plan.highlight ? "rgba(196,151,74,0.04)" : "var(--cream)",
+                        }}>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-semibold" style={{ color: "var(--navy)" }}>{plan.name}</p>
+                          {plan.highlight && <Zap className="h-3.5 w-3.5" style={{ color: "var(--gold)" }} />}
+                        </div>
+                        <div>
+                          <p className="text-lg font-bold" style={{ color: plan.highlight ? "var(--gold)" : "var(--navy)" }}>
+                            ${displayPrice}/mo
+                          </p>
+                          {annualBilling && (
+                            <p className="text-xs" style={{ color: "#2EAD6B" }}>
+                              ${plan.annualPrice * 12}/yr billed annually
+                            </p>
+                          )}
+                        </div>
+                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>{plan.features}</p>
+                        <button
+                          disabled={upgrading === plan.tier}
+                          onClick={async () => {
+                            setUpgrading(plan.tier);
+                            const res = await fetch("/api/billing/checkout", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ tier: plan.tier, annual: annualBilling }),
+                            });
+                            const { url, error } = await res.json();
+                            setUpgrading("");
+                            if (url) window.location.href = url;
+                            else alert(error ?? "Failed to start checkout");
+                          }}
+                          className="mt-auto rounded-lg px-3 py-2 text-xs font-semibold text-white transition-opacity"
+                          style={{
+                            background: plan.highlight
+                              ? "linear-gradient(135deg, var(--navy-light), var(--navy))"
+                              : "var(--navy)",
+                            opacity: upgrading === plan.tier ? 0.7 : 1,
+                          }}>
+                          {upgrading === plan.tier ? "Redirecting..." : `Upgrade to ${plan.name}`}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>

@@ -709,7 +709,7 @@ function CtaSection() {
             Create free account
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
-          <Link href="/pricing"
+          <Link href="#pricing"
             className="rounded-xl px-9 py-4 text-sm font-semibold transition-all hover:bg-white/5"
             style={{ border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}>
             View all plans
