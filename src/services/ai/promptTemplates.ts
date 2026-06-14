@@ -31,6 +31,7 @@ export function buildSectionUserPrompt({
   tone,
   wordTarget,
   existingContent,
+  funderRequirements,
 }: {
   orgName: string;
   orgType: string;
@@ -45,7 +46,27 @@ export function buildSectionUserPrompt({
   tone: string;
   wordTarget: number;
   existingContent?: string;
+  funderRequirements?: {
+    summary?: string | null;
+    keyRequirements?: string[];
+    fundingPriorities?: string[];
+    requiredSections?: Array<{ name: string; wordLimit?: number | null; notes?: string }>;
+    importantNotes?: string[];
+  } | null;
 }): string {
+  const reqBlock = funderRequirements
+    ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+UPLOADED FUNDER REQUIREMENTS (follow these precisely):
+${funderRequirements.summary ? `Overview: ${funderRequirements.summary}` : ""}
+${funderRequirements.fundingPriorities?.length ? `\nFunding priorities:\n${funderRequirements.fundingPriorities.map((p) => `• ${p}`).join("\n")}` : ""}
+${funderRequirements.keyRequirements?.length ? `\nKey requirements:\n${funderRequirements.keyRequirements.map((r) => `• ${r}`).join("\n")}` : ""}
+${funderRequirements.requiredSections?.length ? `\nRequired sections:\n${funderRequirements.requiredSections.map((s) => `• ${s.name}${s.wordLimit ? ` (max ${s.wordLimit} words)` : ""}${s.notes ? ` — ${s.notes}` : ""}`).join("\n")}` : ""}
+${funderRequirements.importantNotes?.length ? `\nImportant notes:\n${funderRequirements.importantNotes.map((n) => `• ${n}`).join("\n")}` : ""}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`
+    : "";
+
   return `
 Organization: ${orgName}
 Type: ${orgType} (${province})
@@ -55,7 +76,7 @@ ${programDescription ? `Program: ${programDescription}` : ""}
 Funder: ${funderName}
 Funder focus areas: ${funderFocusAreas.join(", ")}
 ${funderPriorities ? `Funder priorities: ${funderPriorities}` : ""}
-
+${reqBlock}
 Section to write: ${sectionLabel}
 ${sectionDescription ? `Instructions: ${sectionDescription}` : ""}
 Tone: ${tone}

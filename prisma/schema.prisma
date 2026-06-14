@@ -114,14 +114,15 @@ model Organization {
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
 
-  members    OrgMembership[]
-  grants     Grant[]
-  documents  Document[]
-  invites    TeamInvite[]
-  forms      Form[]
-  workflows  Workflow[]
-  rubrics    ReviewRubric[]
-  messages   Message[]
+  members             OrgMembership[]
+  grants              Grant[]
+  documents           Document[]
+  invites             TeamInvite[]
+  forms               Form[]
+  workflows           Workflow[]
+  rubrics             ReviewRubric[]
+  messages            Message[]
+  funderRequirements  FunderRequirement[]
 
   @@map("organizations")
 }
@@ -184,9 +185,10 @@ model Funder {
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 
-  rules    FunderRule[]
-  sections FunderSection[]
-  grants   Grant[]
+  rules        FunderRule[]
+  sections     FunderSection[]
+  grants       Grant[]
+  requirements FunderRequirement[]
 
   @@map("funders")
 }
@@ -712,4 +714,34 @@ enum ReviewStatus {
   IN_PROGRESS
   COMPLETED
   DECLINED
+}
+
+// ─────────────────────────────────────────────
+// FUNDER REQUIREMENTS
+// ─────────────────────────────────────────────
+
+model FunderRequirement {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  funderId       String?
+  funder         Funder?      @relation(fields: [funderId], references: [id], onDelete: SetNull)
+  funderName     String
+  rawText        String       @db.Text
+  fileUrl        String?
+  fileName       String?
+
+  aiSummary           String?  @db.Text
+  keyRequirements     Json?
+  eligibilityCriteria Json?
+  fundingPriorities   Json?
+  requiredSections    Json?
+  importantNotes      Json?
+  analyzed            Boolean  @default(false)
+  analyzedAt          DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("funder_requirements")
 }

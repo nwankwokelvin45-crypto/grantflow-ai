@@ -1,8 +1,13 @@
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import {
-  GRANT_WRITER_SYSTEM,
-  buildSectionUserPrompt,
-} from "./promptTemplates";
+import { GRANT_WRITER_SYSTEM, buildSectionUserPrompt } from "./promptTemplates";
+
+interface FunderRequirementsInput {
+  summary?: string | null;
+  keyRequirements?: string[];
+  fundingPriorities?: string[];
+  requiredSections?: Array<{ name: string; wordLimit?: number | null; notes?: string }>;
+  importantNotes?: string[];
+}
 
 interface GrantWriterInput {
   grant: {
@@ -16,26 +21,18 @@ interface GrantWriterInput {
     funder: {
       name: string;
       focusAreas: string[];
-      sections: Array<{
-        sectionKey: string;
-        label: string;
-        description: string | null;
-      }>;
+      sections: Array<{ sectionKey: string; label: string; description: string | null }>;
     };
-    sections: Array<{
-      sectionKey: string;
-      content: string | null;
-    }>;
+    sections: Array<{ sectionKey: string; content: string | null }>;
   };
   sectionKey: string;
   tone: "professional" | "warm" | "formal";
   wordTarget: number;
+  funderRequirements?: FunderRequirementsInput | null;
 }
 
-export function buildGrantWriterMessages(
-  input: GrantWriterInput
-): ChatCompletionMessageParam[] {
-  const { grant, sectionKey, tone, wordTarget } = input;
+export function buildGrantWriterMessages(input: GrantWriterInput): ChatCompletionMessageParam[] {
+  const { grant, sectionKey, tone, wordTarget, funderRequirements } = input;
   const { organization, funder, sections } = grant;
 
   const funderSection = funder.sections.find((s) => s.sectionKey === sectionKey);
@@ -54,6 +51,7 @@ export function buildGrantWriterMessages(
     tone,
     wordTarget,
     existingContent: existingSection?.content ?? undefined,
+    funderRequirements: funderRequirements ?? null,
   });
 
   return [

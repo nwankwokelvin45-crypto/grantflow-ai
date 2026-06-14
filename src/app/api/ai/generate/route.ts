@@ -74,11 +74,28 @@ export async function POST(req: NextRequest) {
     }, { status: 402 });
   }
 
+  // Load any uploaded funder requirements for this funder (most recent analyzed one)
+  const funderReq = await prisma.funderRequirement.findFirst({
+    where: {
+      organizationId: grant.organizationId,
+      funderName: { equals: grant.funder.name, mode: "insensitive" },
+      analyzed: true,
+    },
+    orderBy: { analyzedAt: "desc" },
+  });
+
   const messages = buildGrantWriterMessages({
     grant,
     sectionKey,
     tone,
     wordTarget,
+    funderRequirements: funderReq ? {
+      summary: funderReq.aiSummary,
+      keyRequirements: (funderReq.keyRequirements as string[]) ?? [],
+      fundingPriorities: (funderReq.fundingPriorities as string[]) ?? [],
+      requiredSections: (funderReq.requiredSections as Array<{ name: string; wordLimit?: number | null; notes?: string }>) ?? [],
+      importantNotes: (funderReq.importantNotes as string[]) ?? [],
+    } : null,
   });
 
   let stream: Awaited<ReturnType<typeof openai.chat.completions.create>>;

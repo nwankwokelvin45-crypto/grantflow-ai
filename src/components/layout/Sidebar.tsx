@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, FileText, Building2, Users,
   FolderOpen, Settings, LogOut, ChevronDown, Menu, X, Bell, ShieldCheck, BarChart2,
-  ClipboardList, GitBranch, Star, TrendingUp, Globe, Zap,
+  ClipboardList, GitBranch, Star, TrendingUp, Globe, Zap, BookOpen,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
@@ -21,6 +21,7 @@ const nav = [
   { href: "/portal",       label: "Portal",      icon: Globe },
   { href: "/analytics",    label: "Analytics",   icon: TrendingUp },
   { href: "/funders",      label: "Funders",     icon: Building2 },
+  { href: "/requirements", label: "Requirements", icon: BookOpen },
   { href: "/financials",   label: "Financials",  icon: BarChart2 },
   { href: "/documents",    label: "Documents",   icon: FolderOpen },
   { href: "/team",         label: "Team",        icon: Users },
