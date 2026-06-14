@@ -4,8 +4,14 @@ import { useState, useEffect, useRef } from "react";
 import TopNav from "@/components/layout/TopNav";
 import {
   Upload, Sparkles, Trash2, ChevronDown, ChevronUp,
-  CheckCircle, Clock, FileText, Plus, X, AlertCircle,
+  CheckCircle, Clock, FileText, Plus, X, AlertCircle, Copy, ClipboardCheck,
 } from "lucide-react";
+
+interface DraftAnswer {
+  question: string;
+  answer: string;
+  wordLimit?: number | null;
+}
 
 interface FunderReq {
   id: string;
@@ -18,6 +24,7 @@ interface FunderReq {
   fundingPriorities?: string[];
   requiredSections?: Array<{ name: string; wordLimit?: number | null; notes?: string }>;
   importantNotes?: string[];
+  draftAnswers?: DraftAnswer[];
   analyzed: boolean;
   analyzedAt?: string | null;
   createdAt: string;
@@ -30,6 +37,13 @@ export default function RequirementsPage() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [analyzing, setAnalyzing] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  async function handleCopy(text: string, key: string) {
+    await navigator.clipboard.writeText(text);
+    setCopied(key);
+    setTimeout(() => setCopied(null), 2000);
+  }
 
   // Form state
   const [funderName, setFunderName] = useState("");
@@ -435,6 +449,60 @@ export default function RequirementsPage() {
                       )}
                     </div>
 
+                    {/* Draft answers */}
+                    {req.draftAnswers && req.draftAnswers.length > 0 && (
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-xs font-bold uppercase tracking-wide flex items-center gap-2" style={{ color: "var(--navy)" }}>
+                            <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--gold)" }} />
+                            AI-Generated Draft Answers
+                          </p>
+                          <button
+                            onClick={() => handleCopy(
+                              req.draftAnswers!.map((a) => `## ${a.question}\n\n${a.answer}`).join("\n\n---\n\n"),
+                              `all-${req.id}`
+                            )}
+                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold"
+                            style={{ background: "var(--cream)", color: "var(--navy)" }}>
+                            {copied === `all-${req.id}` ? <ClipboardCheck className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                            {copied === `all-${req.id}` ? "Copied!" : "Copy All"}
+                          </button>
+                        </div>
+                        <div className="space-y-3">
+                          {req.draftAnswers.map((draft, i) => (
+                            <div key={i} className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border)" }}>
+                              <div className="flex items-center justify-between px-4 py-2.5"
+                                style={{ background: "linear-gradient(135deg, #0D1B2A, #1A3050)" }}>
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <span className="text-xs font-bold shrink-0" style={{ color: "var(--gold)" }}>
+                                    Q{i + 1}
+                                  </span>
+                                  <p className="text-xs font-semibold text-white truncate">{draft.question}</p>
+                                  {draft.wordLimit && (
+                                    <span className="text-xs shrink-0" style={{ color: "rgba(255,255,255,0.4)" }}>
+                                      max {draft.wordLimit}w
+                                    </span>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={() => handleCopy(draft.answer, `${req.id}-${i}`)}
+                                  className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-md ml-3 shrink-0 font-medium"
+                                  style={{ background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)" }}>
+                                  {copied === `${req.id}-${i}` ? <ClipboardCheck className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                                  {copied === `${req.id}-${i}` ? "Copied" : "Copy"}
+                                </button>
+                              </div>
+                              <div className="px-4 py-3" style={{ background: "var(--cream)" }}>
+                                <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "var(--text)" }}>
+                                  {draft.answer}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="rounded-xl p-4 flex items-center gap-3"
                       style={{ background: "rgba(46,173,107,0.06)", border: "1px solid rgba(46,173,107,0.2)" }}>
                       <CheckCircle className="h-5 w-5 shrink-0" style={{ color: "#2EAD6B" }} />
@@ -450,7 +518,7 @@ export default function RequirementsPage() {
                   <div className="px-5 py-4 border-t flex items-center gap-3" style={{ borderColor: "var(--border)" }}>
                     <div className="h-4 w-4 border-2 border-navy border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--navy)" }} />
                     <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                      AI is analyzing the funder requirements…
+                      AI is analyzing requirements and drafting answers using your org profile… this takes ~20 seconds
                     </p>
                   </div>
                 )}

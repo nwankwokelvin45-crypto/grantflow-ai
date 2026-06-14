@@ -737,6 +737,7 @@ model FunderRequirement {
   fundingPriorities   Json?
   requiredSections    Json?
   importantNotes      Json?
+  draftAnswers        Json?
   analyzed            Boolean  @default(false)
   analyzedAt          DateTime?
 
