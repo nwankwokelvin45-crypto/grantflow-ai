@@ -40,14 +40,41 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const parsed = createSchema.safeParse(body);
-  if (!parsed.success) return Response.json({ error: parsed.error.flatten() }, { status: 400 });
+  if (!parsed.success) return Response.json({ error: parsed.error.issues }, { status: 400 });
+
+  // Auto-create the funder in the global list if they don't exist yet
+  let funderId = parsed.data.funderId ?? null;
+  if (!funderId) {
+    const existing = await prisma.funder.findFirst({
+      where: { name: { equals: parsed.data.funderName, mode: "insensitive" } },
+      select: { id: true },
+    });
+    if (existing) {
+      funderId = existing.id;
+    } else {
+      const newFunder = await prisma.funder.create({
+        data: {
+          name: parsed.data.funderName,
+          province: "OTHER",
+          focusAreas: [],
+          fundingTypes: [],
+          eligibleOrgTypes: [],
+          deadlineType: "ROLLING",
+          acceptsOnlineApps: true,
+          isActive: true,
+        },
+        select: { id: true },
+      });
+      funderId = newFunder.id;
+    }
+  }
 
   const req_ = await prisma.funderRequirement.create({
     data: {
       organizationId: membership.organizationId,
       funderName: parsed.data.funderName,
       rawText: parsed.data.rawText,
-      funderId: parsed.data.funderId ?? null,
+      funderId,
       fileName: parsed.data.fileName ?? null,
     },
   });
