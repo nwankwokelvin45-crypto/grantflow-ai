@@ -8,6 +8,7 @@ const createSchema = z.object({
   rawText: z.string().min(20),
   funderId: z.string().optional(),
   fileName: z.string().optional(),
+  province: z.enum(["BC", "AB", "ON", "SK", "MB", "OTHER"]).default("BC"),
 });
 
 export async function GET() {
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
       const newFunder = await prisma.funder.create({
         data: {
           name: parsed.data.funderName,
-          province: "OTHER",
+          province: parsed.data.province,
           focusAreas: [],
           fundingTypes: [],
           eligibleOrgTypes: [],

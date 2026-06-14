@@ -26,6 +26,7 @@ export default async function FundersPage() {
 
   const bcFunders = funders.filter((f) => f.province === "BC");
   const abFunders = funders.filter((f) => f.province === "AB");
+  const otherFunders = funders.filter((f) => f.province !== "BC" && f.province !== "AB");
 
   function FunderCard({ funder }: { funder: typeof funders[0] }) {
     return (
@@ -116,6 +117,18 @@ export default async function FundersPage() {
             {abFunders.map((f) => <FunderCard key={f.id} funder={f} />)}
           </div>
         </div>
+
+        {otherFunders.length > 0 && (
+          <div>
+            <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="h-5 w-5 bg-gray-100 rounded text-gray-600 text-xs flex items-center justify-center font-bold">🌐</span>
+              National / Other ({otherFunders.length})
+            </h2>
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {otherFunders.map((f) => <FunderCard key={f.id} funder={f} />)}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

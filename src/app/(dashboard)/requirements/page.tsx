@@ -33,6 +33,7 @@ export default function RequirementsPage() {
 
   // Form state
   const [funderName, setFunderName] = useState("");
+  const [province, setProvince] = useState("BC");
   const [rawText, setRawText] = useState("");
   const [fileName, setFileName] = useState("");
   const [saving, setSaving] = useState(false);
@@ -66,7 +67,7 @@ export default function RequirementsPage() {
     const res = await fetch("/api/funder-requirements", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ funderName: funderName.trim(), rawText: rawText.trim(), fileName: fileName || undefined }),
+      body: JSON.stringify({ funderName: funderName.trim(), rawText: rawText.trim(), fileName: fileName || undefined, province }),
     });
     const data = await res.json();
     setSaving(false);
@@ -74,13 +75,13 @@ export default function RequirementsPage() {
     if (!res.ok) { setFormError(data.error ?? "Failed to save"); return; }
 
     setRequirements((prev) => [data, ...prev]);
-    setFunderName(""); setRawText(""); setFileName(""); setShowForm(false);
+    setFunderName(""); setRawText(""); setFileName(""); setProvince("BC"); setShowForm(false);
 
     // Auto-analyze
-    handleAnalyze(data.id, data);
+    handleAnalyze(data.id);
   }
 
-  async function handleAnalyze(id: string, existing?: FunderReq) {
+  async function handleAnalyze(id: string) {
     setAnalyzing(id);
     const res = await fetch("/api/ai/analyze-requirements", {
       method: "POST",
@@ -162,18 +163,37 @@ export default function RequirementsPage() {
             </div>
 
             <div className="p-5 space-y-4">
-              {/* Funder name */}
-              <div>
-                <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--navy)" }}>
-                  Funder name *
-                </label>
-                <input
-                  value={funderName}
-                  onChange={(e) => setFunderName(e.target.value)}
-                  placeholder="e.g. Vancouver Foundation, BC Arts Council"
-                  className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2"
-                  style={{ borderColor: "var(--border)", color: "var(--navy)" }}
-                />
+              {/* Funder name + province */}
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--navy)" }}>
+                    Funder name *
+                  </label>
+                  <input
+                    value={funderName}
+                    onChange={(e) => setFunderName(e.target.value)}
+                    placeholder="e.g. Vancouver Foundation, BC Arts Council"
+                    className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2"
+                    style={{ borderColor: "var(--border)", color: "var(--navy)" }}
+                  />
+                </div>
+                <div className="w-28 shrink-0">
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--navy)" }}>
+                    Province *
+                  </label>
+                  <select
+                    value={province}
+                    onChange={(e) => setProvince(e.target.value)}
+                    className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2"
+                    style={{ borderColor: "var(--border)", color: "var(--navy)" }}>
+                    <option value="BC">BC</option>
+                    <option value="AB">AB</option>
+                    <option value="ON">ON</option>
+                    <option value="SK">SK</option>
+                    <option value="MB">MB</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
               </div>
 
               {/* File upload */}
