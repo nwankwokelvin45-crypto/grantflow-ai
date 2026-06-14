@@ -17,6 +17,17 @@ function createPrismaClient() {
   });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+function getClient(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient();
+  }
+  return globalForPrisma.prisma;
+}
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+// Lazy proxy — DATABASE_URL is only read when Prisma is actually called (runtime),
+// not when this module is imported (build time).
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    return (getClient() as unknown as Record<string | symbol, unknown>)[prop];
+  },
+});
