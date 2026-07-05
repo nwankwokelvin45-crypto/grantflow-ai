@@ -130,16 +130,16 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
   if (!story) notFound();
 
   return (
-    <div style={{ background: "#F7F4EF", minHeight: "100vh" }}>
+    <div style={{ background: "#ffffff", minHeight: "100vh", color: "#000000" }}>
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 h-16"
-        style={{ background: "rgba(247,244,239,0.95)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--border)" }}>
+        style={{ background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)", borderBottom: "1px solid #e5e5e5" }}>
         <Link href="/" className="flex items-center gap-2.5">
           <img src="/icon.png" alt="Grant2Fund'n" className="h-8 w-8 rounded-xl" />
-          <span className="font-serif font-bold text-lg" style={{ color: "var(--navy)" }}>Grant2Fund&apos;n</span>
+          <span className="font-serif font-bold text-lg" style={{ color: "#000000" }}>Grant2Fund&apos;n</span>
         </Link>
         <div className="flex items-center gap-3">
-          <Link href="/#community" className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+          <Link href="/#community" className="text-sm font-medium" style={{ color: "#000000" }}>
             ← Back to Community
           </Link>
           <Link href="/register"
@@ -151,20 +151,20 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
       </nav>
 
       {/* Hero */}
-      <div className="relative overflow-hidden" style={{ height: "480px", marginTop: "0" }}>
+      <div className="relative overflow-hidden" style={{ height: "480px" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={story.hero} alt={story.title} className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(13,27,42,0.92) 0%, rgba(13,27,42,0.3) 50%, rgba(13,27,42,0.1) 100%)" }} />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.05) 100%)" }} />
         <div className="absolute bottom-0 left-0 right-0 px-6 pb-10 pt-20 max-w-4xl mx-auto w-full">
           <span className="inline-block text-xs font-bold px-3 py-1 rounded-full mb-4"
-            style={{ background: story.tagColor, color: "white" }}>
+            style={{ background: story.tagColor, color: "#ffffff" }}>
             {story.tag}
           </span>
           <h1 className="font-serif font-bold text-white mb-3"
             style={{ fontSize: "clamp(2rem, 5vw, 3.2rem)", letterSpacing: "-0.02em", lineHeight: 1.15 }}>
             {story.title}
           </h1>
-          <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>{story.date}</p>
+          <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>{story.date}</p>
         </div>
       </div>
 
@@ -172,7 +172,7 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
       <div className="max-w-3xl mx-auto px-6 py-14">
 
         {/* Intro */}
-        <p className="text-xl leading-relaxed mb-12 font-medium" style={{ color: "var(--navy)" }}>
+        <p className="text-xl leading-relaxed mb-12 font-medium" style={{ color: "#000000" }}>
           {story.intro}
         </p>
 
@@ -180,10 +180,10 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
         <div className="space-y-10">
           {story.body.map((section) => (
             <div key={section.heading}>
-              <h2 className="font-serif font-bold text-2xl mb-4" style={{ color: "var(--navy)" }}>
+              <h2 className="font-serif font-bold text-2xl mb-4" style={{ color: "#000000" }}>
                 {section.heading}
               </h2>
-              <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)", lineHeight: "1.8" }}>
+              <p className="text-base" style={{ color: "#000000", lineHeight: "1.85" }}>
                 {section.text}
               </p>
             </div>
@@ -191,17 +191,17 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
         </div>
 
         {/* Resource links */}
-        <div className="mt-14 rounded-2xl p-8" style={{ background: "white", border: "1px solid var(--border)" }}>
-          <h3 className="font-serif font-bold text-xl mb-6" style={{ color: "var(--navy)" }}>
+        <div className="mt-14 rounded-2xl p-8" style={{ background: "#f5f5f5", border: "1px solid #e5e5e5" }}>
+          <h3 className="font-serif font-bold text-xl mb-6" style={{ color: "#000000" }}>
             Useful Resources & Links
           </h3>
           <div className="space-y-3">
             {story.links.map((link) => (
               <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer"
                 className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-colors group"
-                style={{ background: "var(--cream)", color: "var(--navy)" }}>
+                style={{ background: "#ffffff", color: "#000000", border: "1px solid #e5e5e5" }}>
                 <span>{link.label}</span>
-                <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "var(--gold)" }}>
+                <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "#C4974A" }}>
                   Visit →
                 </span>
               </a>
@@ -215,7 +215,7 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
           <p className="font-serif font-bold text-white text-2xl mb-3">
             Ready to fund this work?
           </p>
-          <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.5)" }}>
+          <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.55)" }}>
             Grant2Fund&apos;n helps nonprofits write stronger applications and win more grants — faster.
           </p>
           <Link href="/register"
@@ -223,28 +223,6 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
             style={{ background: "linear-gradient(135deg, #C4974A, #A07830)" }}>
             Start for free
           </Link>
-        </div>
-
-        {/* Other stories */}
-        <div className="mt-14">
-          <p className="font-semibold text-sm mb-5" style={{ color: "var(--text-muted)" }}>More stories</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(STORIES)
-              .filter(([s]) => s !== slug)
-              .map(([s, story]) => (
-                <Link key={s} href={`/stories/${s}`}
-                  className="relative overflow-hidden rounded-2xl group block" style={{ height: "180px" }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={story.hero} alt={story.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(13,27,42,0.88) 0%, rgba(13,27,42,0.1) 60%)" }} />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <span className="inline-block text-xs font-bold px-2 py-0.5 rounded-full mb-1.5"
-                      style={{ background: story.tagColor, color: "white" }}>{story.tag}</span>
-                    <p className="text-white font-semibold text-sm">{story.title}</p>
-                  </div>
-                </Link>
-              ))}
-          </div>
         </div>
       </div>
     </div>
