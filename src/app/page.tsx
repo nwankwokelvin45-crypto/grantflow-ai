@@ -166,16 +166,19 @@ const COMMUNITY_PHOTOS = [
     src: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=600&q=75",
     caption: "Youth programs in Vancouver",
     tag: "BC",
+    slug: "youth-programs-vancouver",
   },
   {
     src: "https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=600&q=75",
     caption: "Community partnerships that last",
     tag: "BC & AB",
+    slug: "community-partnerships",
   },
   {
     src: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=600&q=75",
     caption: "Every child deserves support",
     tag: "Alberta",
+    slug: "every-child-deserves-support",
   },
 ];
 
@@ -679,7 +682,7 @@ function CommunitySection() {
         {/* 3-column photo grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
           {COMMUNITY_PHOTOS.map((p) => (
-            <div key={p.caption} className="relative overflow-hidden rounded-2xl group" style={{ height: "320px" }}>
+            <Link key={p.caption} href={`/stories/${p.slug}`} className="relative overflow-hidden rounded-2xl group block cursor-pointer" style={{ height: "320px" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={p.src}
@@ -687,13 +690,17 @@ function CommunitySection() {
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 transition-opacity duration-300"
-                style={{ background: "linear-gradient(to top, rgba(13,27,42,0.85) 0%, rgba(13,27,42,0.1) 60%)" }} />
+                style={{ background: "linear-gradient(to top, rgba(13,27,42,0.92) 0%, rgba(13,27,42,0.15) 60%)" }} />
               <div className="absolute bottom-0 left-0 right-0 p-5">
                 <span className="inline-block text-xs font-bold px-2 py-0.5 rounded-full mb-2"
                   style={{ background: "rgba(196,151,74,0.9)", color: "#0D1B2A" }}>{p.tag}</span>
-                <p className="text-white font-semibold text-sm">{p.caption}</p>
+                <p className="text-white font-semibold text-sm mb-2">{p.caption}</p>
+                <span className="inline-flex items-center gap-1 text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{ color: "var(--gold)" }}>
+                  Read more →
+                </span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 
